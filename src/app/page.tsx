@@ -204,7 +204,7 @@ export default function HomePage() {
                 <span className="text-xl font-bold text-white">reCommerce</span>
               </div>
               <p className="text-gray-400 text-sm leading-relaxed">
-                Secure cryptocurrency commerce platform powered by reCeption&apos;s advanced AI security analysis.
+                Secure cryptocurrency commerce platform powered by reCeption&#39;s advanced AI security analysis.
               </p>
             </div>
 
