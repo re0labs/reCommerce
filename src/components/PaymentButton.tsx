@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import AnalysisModal from './AnalysisModal';
 
 interface PaymentButtonProps {
   productName: string;
@@ -18,6 +19,7 @@ export default function PaymentButton({
   onPaymentError
 }: PaymentButtonProps) {
   const [loading, setLoading] = useState(false);
+  const [showAnalysisModal, setShowAnalysisModal] = useState(false);
   const [contractAnalysis, setContractAnalysis] = useState<{
     contract_safe: boolean;
     risk_score: number;
@@ -28,6 +30,7 @@ export default function PaymentButton({
   const handlePayment = async () => {
     setLoading(true);
     setPaymentBlocked(false);
+    setShowAnalysisModal(true);
     
     try {
       onPaymentStart?.();
@@ -52,19 +55,24 @@ export default function PaymentButton({
 
       const charge = data.charge;
 
-      // Simulate contract analysis
+      // Simulate contract analysis with delay to show modal
+      await new Promise(resolve => setTimeout(resolve, 3000)); // 3 second delay
       await simulateContractAnalysis();
 
       // If contract is safe, redirect to payment
       if (!paymentBlocked) {
+        setShowAnalysisModal(false);
         window.open(charge.hosted_url, '_blank');
         onPaymentSuccess?.(charge.id);
+      } else {
+        setShowAnalysisModal(false);
       }
 
     } catch (error) {
       console.error('Payment error:', error);
       const errorMessage = error instanceof Error ? error.message : 'Payment failed';
       onPaymentError?.(errorMessage);
+      setShowAnalysisModal(false);
     } finally {
       setLoading(false);
     }
@@ -149,6 +157,12 @@ export default function PaymentButton({
           </div>
         </div>
       )}
+
+      {/* Analysis Modal */}
+      <AnalysisModal 
+        isOpen={showAnalysisModal} 
+        onClose={() => setShowAnalysisModal(false)} 
+      />
     </div>
   );
 } 
