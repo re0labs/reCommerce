@@ -37,6 +37,10 @@ COINBASE_WEBHOOK_SECRET=your_sandbox_webhook_secret
 # reCeption API Configuration  
 RECEPTION_API_KEY=your_reception_api_key
 RECEPTION_API_URL=https://api.re-labs.io:35765/predict
+
+# reCeption API Configuration (Frontend access)
+NEXT_PUBLIC_RECEPTION_API_KEY=your_reception_api_key
+NEXT_PUBLIC_RECEPTION_API_URL=https://api.re-labs.io:35765/predict
 ```
 
 ### 2. Install Dependencies
@@ -74,11 +78,11 @@ Open [http://localhost:3000](http://localhost:3000) to see the demo store.
 
 1. **Product Display** - User sees the demo product with price and description
 2. **Payment Initiation** - User clicks "Pay w/ Crypto" button
-3. **Charge Creation** - Coinbase Commerce charge is created
-4. **Contract Analysis** - reCeption API analyzes the smart contract
-5. **Security Gate** - Payment proceeds only if contract is safe
-6. **Payment Completion** - User completes payment via Coinbase Commerce
-7. **Results Display** - Contract analysis results shown to user
+3. **Contract Analysis** - reCeption API analyzes the Coinbase Transfers contract (0x96A08D8e8631b6dB52Ea0cbd7232d9A85d239147)
+4. **Security Results** - User sees real-time analysis results including risk score and vulnerabilities
+5. **User Decision** - User chooses to "Proceed to Payment" or "Cancel" based on security analysis
+6. **Conditional Payment** - Coinbase Commerce charge is created only if user approves
+7. **Payment Completion** - User completes payment via Coinbase Commerce if approved
 
 ## API Endpoints
 
@@ -109,15 +113,18 @@ src/
 |----------|-------------|
 | `COINBASE_COMMERCE_API_KEY` | Your Coinbase Commerce **sandbox** API key for creating test charges |
 | `COINBASE_WEBHOOK_SECRET` | **Sandbox** webhook secret for verifying Coinbase webhook signatures |
-| `RECEPTION_API_KEY` | Your reCeption API key for smart contract analysis |
-| `RECEPTION_API_URL` | reCeption API endpoint URL |
+| `RECEPTION_API_KEY` | Your reCeption API key for smart contract analysis (server-side) |
+| `RECEPTION_API_URL` | reCeption API endpoint URL (server-side) |
+| `NEXT_PUBLIC_RECEPTION_API_KEY` | Your reCeption API key for frontend contract analysis |
+| `NEXT_PUBLIC_RECEPTION_API_URL` | reCeption API endpoint URL for frontend access |
 
 ## Security Features
 
-- **Smart Contract Analysis** - Every payment triggers contract security analysis
-- **Payment Gating** - Unsafe contracts automatically block payments
-- **Vulnerability Detection** - Identifies common smart contract vulnerabilities
-- **Real-time Protection** - Analysis happens before payment processing
+- **Pre-Payment Analysis** - reCeption API analyzes Coinbase Transfers contract before payment creation
+- **Real-time Results** - Users see actual security scores and vulnerability details
+- **User Consent** - Payment proceeds only with explicit user approval after seeing analysis
+- **Production Contract Analysis** - Analyzes actual Coinbase production smart contract (0x96A08D8e8631b6dB52Ea0cbd7232d9A85d239147)
+- **Transparent Risk Assessment** - Clear display of risk scores and detected vulnerabilities
 
 ## Demo Product
 

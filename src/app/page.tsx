@@ -8,7 +8,7 @@ import PaymentButton from '@/components/PaymentButton';
 // Hardcoded product data as specified in PRD
 const DEMO_PRODUCT = {
   name: 'Crypto Security Scanner Pro',
-  description: 'Advanced smart contract analysis powered by reCeption AI',
+  description: 'Real-time analysis of Coinbase Commerce payment contract using reCeption AI',
   price: '0.01',
   imageUrl: 'https://images.unsplash.com/photo-1639762681485-074b7f938ba0?w=500&h=300&fit=crop&crop=center'
 };

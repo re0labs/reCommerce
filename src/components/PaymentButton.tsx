@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import AnalysisModal from './AnalysisModal';
+import { CONTRACT_ADDRESS } from '../contracts/TransfersContract';
 
 interface PaymentButtonProps {
   productName: string;
@@ -9,6 +10,14 @@ interface PaymentButtonProps {
   onPaymentStart?: () => void;
   onPaymentSuccess?: (chargeId: string) => void;
   onPaymentError?: (error: string) => void;
+}
+
+interface ReceptionAnalysisResult {
+  contract_safe: boolean;
+  risk_score: number;
+  vulnerabilities: string[];
+  analysis_details?: Record<string, unknown>;
+  is_demo_data?: boolean;
 }
 
 export default function PaymentButton({
@@ -20,11 +29,8 @@ export default function PaymentButton({
 }: PaymentButtonProps) {
   const [loading, setLoading] = useState(false);
   const [showAnalysisModal, setShowAnalysisModal] = useState(false);
-  const [contractAnalysis, setContractAnalysis] = useState<{
-    contract_safe: boolean;
-    risk_score: number;
-    vulnerabilities: string[];
-  } | null>(null);
+  const [contractAnalysis, setContractAnalysis] = useState<ReceptionAnalysisResult | null>(null);
+  const [showApprovalModal, setShowApprovalModal] = useState(false);
   const [paymentBlocked, setPaymentBlocked] = useState(false);
 
   const handlePayment = async () => {
@@ -35,7 +41,66 @@ export default function PaymentButton({
     try {
       onPaymentStart?.();
 
-      // Create Coinbase Commerce charge
+      // Call reCeption API directly to analyze the Coinbase Transfers contract
+      const analysisResult = await analyzeContractWithReception();
+      
+      setContractAnalysis(analysisResult);
+      setShowAnalysisModal(false);
+      
+      if (!analysisResult.contract_safe) {
+        setPaymentBlocked(true);
+        onPaymentError?.(`Smart contract security risk detected. Security Score: ${Math.round(100 - analysisResult.risk_score)}/100. Payment blocked.`);
+        return;
+      }
+      
+      // Show approval modal with analysis results
+      setShowApprovalModal(true);
+
+    } catch (error) {
+      console.error('Contract analysis error:', error);
+      const errorMessage = error instanceof Error ? error.message : 'Contract analysis failed';
+      onPaymentError?.(errorMessage);
+      setShowAnalysisModal(false);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const analyzeContractWithReception = async (): Promise<ReceptionAnalysisResult> => {
+    const response = await fetch('/api/analyze-contract', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      }
+    });
+
+    if (!response.ok) {
+      throw new Error(`Contract analysis failed: ${response.status} ${response.statusText}`);
+    }
+
+    const data = await response.json();
+    
+    if (!data.success) {
+      const errorMessage = data.userMessage || data.error || 'Contract analysis failed';
+      throw new Error(errorMessage);
+    }
+
+
+    return data.analysis;
+  };
+
+  const handleUserApproval = async (approved: boolean) => {
+    setShowApprovalModal(false);
+    
+    if (!approved) {
+      onPaymentError?.('Payment cancelled by user');
+      return;
+    }
+    
+    try {
+      setLoading(true);
+      
+      // Create Coinbase Commerce charge only after user approval
       const response = await fetch('/api/create-charge', {
         method: 'POST',
         headers: {
@@ -43,7 +108,8 @@ export default function PaymentButton({
         },
         body: JSON.stringify({
           productName,
-          productPrice
+          productPrice,
+          contractAnalysis: contractAnalysis // Include analysis results
         }),
       });
 
@@ -54,42 +120,15 @@ export default function PaymentButton({
       }
 
       const charge = data.charge;
-
-      // Simulate contract analysis with delay to show modal
-      await new Promise(resolve => setTimeout(resolve, 3000)); // 3 second delay
-      await simulateContractAnalysis();
-
-      // If contract is safe, redirect to payment
-      if (!paymentBlocked) {
-        setShowAnalysisModal(false);
-        window.open(charge.hosted_url, '_blank');
-        onPaymentSuccess?.(charge.id);
-      } else {
-        setShowAnalysisModal(false);
-      }
-
+      window.open(charge.hosted_url, '_blank');
+      onPaymentSuccess?.(charge.id);
+      
     } catch (error) {
-      console.error('Payment error:', error);
-      const errorMessage = error instanceof Error ? error.message : 'Payment failed';
+      console.error('Payment creation error:', error);
+      const errorMessage = error instanceof Error ? error.message : 'Payment creation failed';
       onPaymentError?.(errorMessage);
-      setShowAnalysisModal(false);
     } finally {
       setLoading(false);
-    }
-  };
-
-  const simulateContractAnalysis = async () => {
-    const mockAnalysis = {
-      contract_safe: Math.random() > 0.2, // 80% chance of safe contract
-      risk_score: Math.random() * 100,
-      vulnerabilities: Math.random() > 0.8 ? ['Reentrancy detected'] : [],
-    };
-
-    setContractAnalysis(mockAnalysis);
-
-    if (!mockAnalysis.contract_safe) {
-      setPaymentBlocked(true);
-      onPaymentError?.('Smart contract security risk detected. Payment blocked.');
     }
   };
 
@@ -131,7 +170,9 @@ export default function PaymentButton({
       {contractAnalysis && (
         <div className="glass-card p-4">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-3 gap-2">
-            <h4 className="font-semibold text-white text-sm">Security Analysis</h4>
+            <div className="flex items-center gap-2">
+              <h4 className="font-semibold text-white text-sm">Security Analysis</h4>
+            </div>
             <div className={`px-3 py-1 rounded-full text-xs font-medium self-start sm:self-auto ${
               contractAnalysis.contract_safe 
                 ? 'bg-green-500/20 text-green-400 border border-green-500/30'
@@ -143,9 +184,9 @@ export default function PaymentButton({
           
           <div className="space-y-2 text-sm">
             <div className="flex justify-between">
-              <span className="text-gray-400">Risk Score</span>
+              <span className="text-gray-400">Security Score</span>
               <span className="text-white font-medium">
-                {contractAnalysis.risk_score.toFixed(1)}/100
+                {Math.round(100 - contractAnalysis.risk_score)}/100
               </span>
             </div>
             
@@ -161,8 +202,75 @@ export default function PaymentButton({
       {/* Analysis Modal */}
       <AnalysisModal 
         isOpen={showAnalysisModal} 
-        onClose={() => setShowAnalysisModal(false)} 
+        onClose={() => setShowAnalysisModal(false)}
       />
+      
+      {/* Approval Modal */}
+      {showApprovalModal && contractAnalysis && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center">
+          <div className="absolute inset-0 bg-black/80 backdrop-blur-sm" onClick={() => setShowApprovalModal(false)} />
+          <div className="relative bg-white/10 backdrop-blur-lg border border-white/20 rounded-2xl p-6 max-w-md w-full mx-4">
+            <div className="text-center mb-4">
+              <div className="flex items-center justify-center gap-2 mb-2">
+                <h3 className="text-xl font-semibold text-white">Security Analysis Complete</h3>
+              </div>
+              <p className="text-gray-400 text-sm">Contract: Coinbase Transfers ({CONTRACT_ADDRESS.slice(0, 6)}...{CONTRACT_ADDRESS.slice(-4)})</p>
+            </div>
+            
+            <div className="mb-6">
+              <div className={`p-4 rounded-xl border ${contractAnalysis.contract_safe 
+                ? 'bg-green-500/10 border-green-500/30' 
+                : 'bg-red-500/10 border-red-500/30'
+              }`}>
+                <div className="flex items-center justify-between mb-2">
+                  <span className="text-white font-medium">Security Score</span>
+                  <span className={`text-2xl font-bold ${
+                    contractAnalysis.risk_score < 30 ? 'text-green-400' :
+                    contractAnalysis.risk_score < 60 ? 'text-yellow-400' : 'text-red-400'
+                  }`}>
+                    {Math.round(100 - contractAnalysis.risk_score)}/100
+                  </span>
+                </div>
+                <div className={`text-xs font-medium ${
+                  contractAnalysis.contract_safe ? 'text-green-400' : 'text-red-400'
+                }`}>
+                  {contractAnalysis.contract_safe ? '✓ SAFE TO PROCEED' : '⚠ RISKS DETECTED'}
+                </div>
+                
+                {contractAnalysis.vulnerabilities.length > 0 && (
+                  <div className="mt-3 pt-3 border-t border-white/10">
+                    <p className="text-red-400 text-xs mb-1">Vulnerabilities found:</p>
+                    <ul className="text-xs text-gray-300">
+                      {contractAnalysis.vulnerabilities.map((vuln, idx) => (
+                        <li key={idx}>• {vuln}</li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
+              </div>
+            </div>
+            
+            <div className="flex space-x-3">
+              <button
+                onClick={() => handleUserApproval(false)}
+                className="flex-1 py-3 px-4 bg-gray-600 hover:bg-gray-700 rounded-xl text-white font-medium transition-colors"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={() => handleUserApproval(true)}
+                className={`flex-1 py-3 px-4 rounded-xl font-medium transition-colors ${
+                  contractAnalysis.contract_safe 
+                    ? 'bg-gradient-to-r from-purple-500 to-blue-600 hover:from-purple-600 hover:to-blue-700 text-white'
+                    : 'bg-yellow-600 hover:bg-yellow-700 text-white'
+                }`}
+              >
+                {contractAnalysis.contract_safe ? 'Proceed to Payment' : 'Accept Risk & Pay'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 } 
