@@ -117,3 +117,20 @@ export function getMockResultBySafety(safe: boolean): ReceptionAnalysisResult {
   const randomIndex = Math.floor(Math.random() * safeResults.length);
   return safeResults[randomIndex];
 }
+
+export function getDefaultMockResult(): ReceptionAnalysisResult {
+  return {
+    contract_safe: true,
+    risk_score: 20, // Security Score will display as 80 (100 - 20)
+    vulnerabilities: [
+      "Informational: Contract follows security best practices",
+      "Low: Consider implementing additional gas optimizations for batch operations"
+    ],
+    is_demo_data: true,
+    analysis_details: {
+      scanned_functions: 12,
+      security_checks_passed: 11,
+      gas_optimization_score: 80
+    }
+  };
+}

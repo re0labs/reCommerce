@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { getRandomMockResult, ReceptionAnalysisResult } from '../../../data/mockAnalysisResults';
+import { getRandomMockResult, getDefaultMockResult, ReceptionAnalysisResult } from '../../../data/mockAnalysisResults';
 
 // Helper function to make API call with retry logic
 async function makeReceptionApiCall(url: string, apiKey: string, requestBody: Record<string, string>, maxRetries = 1): Promise<Response> {
@@ -143,10 +143,10 @@ export async function POST() {
     );
     
     if (isConnectionError) {
-      console.log('API connection failed, falling back to mock analysis data...');
+      console.log('API connection failed, falling back to default analysis data...');
       
-      // Return mock analysis data as fallback
-      const mockResult: ReceptionAnalysisResult = getRandomMockResult();
+      // Return default analysis data as fallback (Security Score 80)
+      const mockResult: ReceptionAnalysisResult = getDefaultMockResult();
       
       return NextResponse.json({
         success: true,
