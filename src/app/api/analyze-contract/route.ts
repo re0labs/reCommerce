@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { getRandomMockResult, getDefaultMockResult, ReceptionAnalysisResult } from '../../../data/mockAnalysisResults';
+import { getDefaultMockResult, ReceptionAnalysisResult } from '../../../data/mockAnalysisResults';
 
 // Helper function to make API call with retry logic
 async function makeReceptionApiCall(url: string, apiKey: string, requestBody: Record<string, string>, maxRetries = 1): Promise<Response> {
