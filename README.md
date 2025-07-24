@@ -1,4 +1,4 @@
-# reCommerce 
+# reCommerce  
 
 A Next.js demo store showcasing **reCeption API's** smart contract analysis capabilities during cryptocurrency payments.
 
