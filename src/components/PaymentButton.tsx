@@ -129,6 +129,8 @@ export default function PaymentButton({
       await switchToSepolia();
 
       setWalletConnected(true);
+      console.log("Wallet Connected:", walletConnected);
+
       return accounts[0];
     } catch (error) {
       console.error("Wallet connection error:", error);
