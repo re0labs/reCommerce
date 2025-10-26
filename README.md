@@ -69,14 +69,8 @@ Open [http://localhost:3000](http://localhost:3000) to see the demo store.
 3. **Contract Analysis** - reCeption API analyzes the PYUSD Transfers contract on the Ethereum Sepolia network (0xCaC524BcA292aaade2DF8A05cC58F0a65B1B3bB9)
 4. **Security Results** - User sees real-time analysis results including risk score and vulnerabilities
 5. **User Decision** - User chooses to "Proceed to Payment" or "Cancel" based on security analysis
-6. **Conditional Payment** - Coinbase Commerce charge is created only if user approves
-7. **Payment Completion** - User completes payment via Coinbase Commerce if approved
+7. **Payment Completion** - User completes payment if approved
 
-## API Endpoints
-
-- `POST /api/create-charge` - Create Coinbase Commerce charge
-- `POST /api/webhook` - Handle Coinbase webhooks and trigger reCeption analysis
-- `GET /api/charge-status/[id]` - Check payment status
 
 ## Project Structure
 
@@ -105,10 +99,10 @@ src/
 
 ## Security Features
 
-- **Pre-Payment Analysis** - reCeption API analyzes Coinbase Transfers contract before payment creation
+- **Pre-Payment Analysis** - reCeption API analyzes PYUSD Transfers contract before payment creation
 - **Real-time Results** - Users see actual security scores and vulnerability details
 - **User Consent** - Payment proceeds only with explicit user approval after seeing analysis
-- **Production Contract Analysis** - Analyzes actual Coinbase production smart contract (0x96A08D8e8631b6dB52Ea0cbd7232d9A85d239147)
+- **Production Contract Analysis** - Analyzes PYUSD smart contract on the Ethereum Sepolia network(0xCaC524BcA292aaade2DF8A05cC58F0a65B1B3bB9)
 - **Transparent Risk Assessment** - Clear display of risk scores and detected vulnerabilities
 
 ## Demo Product
