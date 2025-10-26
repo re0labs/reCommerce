@@ -1,6 +1,6 @@
-import { NextRequest, NextResponse } from 'next/server';
+import { NextRequest, NextResponse } from "next/server";
 // eslint-disable-next-line @typescript-eslint/no-require-imports
-const Commerce = require('coinbase-commerce-node');
+const Commerce = require("coinbase-commerce-node");
 
 export async function POST(request: NextRequest) {
   try {
@@ -8,7 +8,7 @@ export async function POST(request: NextRequest) {
 
     if (!process.env.COINBASE_COMMERCE_API_KEY) {
       return NextResponse.json(
-        { error: 'Coinbase Commerce API key not configured' },
+        { error: "Coinbase Commerce API key not configured" },
         { status: 500 }
       );
     }
@@ -21,16 +21,16 @@ export async function POST(request: NextRequest) {
     const chargeData = {
       name: productName,
       description: `Purchase of ${productName}`,
-      pricing_type: 'fixed_price',
+      pricing_type: "fixed_price",
       local_price: {
         amount: productPrice,
-        currency: 'USD'
+        currency: "USD",
       },
       metadata: {
         product_name: productName,
         product_price: productPrice,
         // Mock smart contract data for demo
-        contract_name: 'DemoSmartContract',
+        contract_name: "DemoSmartContract",
         contract_source_code: `pragma solidity ^0.8.0;
 contract DemoSmartContract {
     address public owner;
@@ -49,12 +49,13 @@ contract DemoSmartContract {
         balances[msg.sender] -= amount;
         payable(msg.sender).transfer(amount);
     }
-}`
-      }
+}`,
+      },
     };
 
     // Create the charge
     const charge = await Charge.create(chargeData);
+    console.log("Charge:", charge);
 
     return NextResponse.json({
       success: true,
@@ -62,15 +63,14 @@ contract DemoSmartContract {
         id: charge.id,
         code: charge.code,
         hosted_url: charge.hosted_url,
-        pricing: charge.pricing
-      }
+        pricing: charge.pricing,
+      },
     });
-
   } catch (error) {
-    console.error('Error creating charge:', error);
+    console.error("Error creating charge:", error);
     return NextResponse.json(
-      { error: 'Failed to create charge' },
+      { error: "Failed to create charge" },
       { status: 500 }
     );
   }
-} 
+}
