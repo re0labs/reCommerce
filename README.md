@@ -66,7 +66,7 @@ Open [http://localhost:3000](http://localhost:3000) to see the demo store.
 
 1. **Product Display** - User sees the demo product with price and description
 2. **Payment Initiation** - User clicks "Pay w/ Crypto" button
-3. **Contract Analysis** - reCeption API analyzes the Coinbase Transfers contract (0x96A08D8e8631b6dB52Ea0cbd7232d9A85d239147)
+3. **Contract Analysis** - reCeption API analyzes the PYUSD Transfers contract on the Ethereum Sepolia network (0xCaC524BcA292aaade2DF8A05cC58F0a65B1B3bB9)
 4. **Security Results** - User sees real-time analysis results including risk score and vulnerabilities
 5. **User Decision** - User chooses to "Proceed to Payment" or "Cancel" based on security analysis
 6. **Conditional Payment** - Coinbase Commerce charge is created only if user approves
